@@ -1,5 +1,5 @@
 // backend/controllers/venueController.js
-const Venue = require('./models/Venue');
+const Venue = require('../models/Venue');
 
 // Controller for creating a new venue
 exports.createVenue = async (req, res) => {

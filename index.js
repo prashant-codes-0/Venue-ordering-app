@@ -5,6 +5,7 @@ const passport = require('passport');
 const cors = require('cors'); // Import the cors package
 const userRoutes = require('./routes/userRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const config =require('./config/config')
 const app = express();
 
 // Use the cors middleware
@@ -14,7 +15,7 @@ app.use(cors());
 app.use(express.json());
 
 // Connect to MongoDB
-mongoose.connect('mongodb://localhost:27017/venueBookingApp', {
+mongoose.connect(config.mongo_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
@@ -27,7 +28,7 @@ mongoose.connect('mongodb://localhost:27017/venueBookingApp', {
 
 // Initialize Passport and use the Passport JWT strategy
 app.use(passport.initialize());
-require('./config/passportConfig')(passport);
+require('./config/passportConfig');
 
 // Use userRoutes and adminRoutes
 app.use('/user', userRoutes);
