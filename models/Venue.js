@@ -11,7 +11,7 @@ const venueSchema = new mongoose.Schema({
     required: true,
   },
   availableDates: [Date],
-  areaInSqFoot: {
+  area: {
     type: Number,
     required: true,
   },

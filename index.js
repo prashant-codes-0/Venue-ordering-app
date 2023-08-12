@@ -14,17 +14,7 @@ app.use(cors());
 // Body parsing middleware
 app.use(express.json());
 
-// Connect to MongoDB
-mongoose.connect(config.mongo_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-  .then(() => {
-    console.log('Connected to MongoDB');
-  })
-  .catch((error) => {
-    console.error('Error connecting to MongoDB:', error);
-  });
+
 
 // Initialize Passport and use the Passport JWT strategy
 app.use(passport.initialize());
@@ -38,6 +28,17 @@ app.use('/admin', adminRoutes);
 app.get('/', (req, res) => {
   res.send('Welcome to the Venue Booking App');
 });
+// Connect to MongoDB
+mongoose.connect(config.mongo_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+  .then(() => {
+    console.log('Connected to MongoDB');
+  })
+  .catch((error) => {
+    console.error('Error connecting to MongoDB:', error);
+  });
 
 // Start the server
 const port = 5555;

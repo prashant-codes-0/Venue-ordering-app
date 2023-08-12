@@ -16,6 +16,7 @@ exports.createVenue = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: 'An error occurred while creating the venue.' });
   }
+  
 };
 
 // Controller for updating a venue

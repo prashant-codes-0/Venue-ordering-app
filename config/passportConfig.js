@@ -2,12 +2,13 @@
 const passport = require('passport');
 const JwtStrategy = require('passport-jwt').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
+const config=require('./config')
 
 const User = require('../models/User'); // Modify the path to your User model
 
 const options = {
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-  secretOrKey: 'ABCD', // Set your JWT secret key here
+  secretOrKey: config.JWT_SECRET // Set your JWT secret key here
 };
 
 passport.use(
@@ -17,11 +18,13 @@ passport.use(
 
       if (!user) {
         return done(null, false);
+       
       }
 
       return done(null, user);
     } catch (error) {
       return done(error, false);
+    
     }
   })
 );

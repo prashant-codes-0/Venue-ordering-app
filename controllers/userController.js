@@ -8,12 +8,13 @@ const config =require('../config/config')
 // Controller for user signup
 exports.signup = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
-    const newUser = new User({ username, email, password });
+    const { username, email, password ,isAdmin } = req.body;
+    const newUser = new User({ username, email, password ,isAdmin});
     await newUser.save();
     res.status(201).json({ message: 'User registered successfully.' });
   } catch (error) {
     res.status(500).json({ message: 'An error occurred while signing up.' });
+
   }
 };
 
@@ -40,41 +41,49 @@ exports.bookVenue = async (req, res) => {
   try {
     const { venueId, bookingDate } = req.body;
 
-    // Check if the user is authenticated
-    if (!req.user) {
-      return res.status(401).json({ message: 'Unauthorized. Please login to book a venue.' });
+    try {
+      // Check if the user is authenticated
+      if (!req.user) {
+        throw new Error('Unauthorized. Please login to book a venue.');
+      }
+
+      const user = await User.findById(req.user._id);
+      if (!user) {
+        throw new Error('User not found.');
+      }
+
+      const venue = await Venue.findById(venueId);
+      if (!venue) {
+        throw new Error('Venue not foundddddd.');
+      }
+
+      // Check if the venue is available for booking on the specified date
+      if (!venue.availableDates.includes(bookingDate)) {
+        throw new Error('Venue not available on the specified date.');
+      }
+
+      try {
+        // Create a new Booking document
+        const booking = new Booking({
+          user: user._id,
+          venue: venue._id,
+          bookingDate: bookingDate,
+        });
+
+        // Save the booking
+        await booking.save();
+
+        // Update the venue's availability
+        venue.availableDates = venue.availableDates.filter(date => date !== bookingDate);
+        await venue.save();
+
+        res.status(200).json({ message: 'Venue booked successfully.' });
+      } catch (bookingError) {
+        throw new Error('An error occurred while saving the booking.');
+      }
+    } catch (innerError) {
+      return res.status(400).json({ message: innerError.message });
     }
-
-    const user = await User.findById(req.user._id);
-    if (!user) {
-      return res.status(401).json({ message: 'User not found.' });
-    }
-
-    const venue = await Venue.findById(venueId);
-    if (!venue) {
-      return res.status(404).json({ message: 'Venue not found.' });
-    }
-
-    // Check if the venue is available for booking on the specified date
-    if (!venue.availableDates.includes(bookingDate)) {
-      return res.status(400).json({ message: 'Venue not available on the specified date.' });
-    }
-
-    // Create a new Booking document
-    const booking = new Booking({
-      user: user._id,
-      venue: venue._id,
-      bookingDate: bookingDate,
-    });
-
-    // Save the booking
-    await booking.save();
-
-    // Update the venue's availability
-    venue.availableDates = venue.availableDates.filter(date => date !== bookingDate);
-    await venue.save();
-
-    res.status(200).json({ message: 'Venue booked successfully.' });
   } catch (error) {
     res.status(500).json({ message: 'An error occurred while booking the venue.' });
   }
