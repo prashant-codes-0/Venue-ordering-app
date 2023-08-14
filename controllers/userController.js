@@ -3,7 +3,8 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const User = require('../models/User');
 const Venue = require('../models/Venue');
-const config =require('../config/config')
+const config =require('../config/config');
+const Booking =require('../models/Booking')
 
 // Controller for user signup
 exports.signup = async (req, res) => {
@@ -35,11 +36,69 @@ exports.login = async (req, res) => {
   }
 };
 
-// Controller for booking a venue
+// // Controller for booking a venue
+// exports.bookVenue = async (req, res) => {
+//   try {
+//     const { venue: requestedVenue, bookingDate } = req.body; //takes venue only not venue_Id
+//     console.log(requestedVenue,bookingDate)
+
+//     try {
+//       // Check if the user is authenticated
+//       if (!req.user) {
+//         throw new Error('Unauthorized. Please login to book a venue.');
+//       }
+
+//       const user = await User.findById(req.user._id);
+//       console.log(user)
+//       if (!user) {
+//         throw new Error('User not found.');
+//       }
+
+//       const venue = await Venue.findById(requestedVenue);
+//       if (!venue) {
+//         throw new Error('Venue not found.');
+//       }
+//       console.log(bookingDate)
+
+//       // Check if the venue is available for booking on the specified date
+//       if (!venue.availableDates.includes(bookingDate)) {
+//         throw new Error('Venue not available on the specified date.');
+        
+//       }
+
+//       try {
+//         // Create a new Booking document
+//         const booking = new Booking({
+//           user: user._id,
+//           venue: venue._id,
+//           bookingDate: bookingDate,
+//         });
+
+//         // Save the booking
+//         await booking.save();
+
+//         // Update the venue's availability
+//         venue.availableDates = venue.availableDates.filter(date => date !== bookingDate);
+//         await venue.save();
+
+//         res.status(200).json({ message: 'Venue booked successfully.' });
+//       } catch (bookingError) {
+//         throw new Error('An error occurred while saving the booking.');
+//       }
+//     } catch (innerError) {
+//       return res.status(400).json({ message: innerError.message });
+//     }
+//   } catch (error) {
+//     res.status(500).json({ message: 'An error occurred while booking the venue.' });
+//   }
+// };
+
+
+
 // Controller for booking a venue
 exports.bookVenue = async (req, res) => {
   try {
-    const { venueId, bookingDate } = req.body;
+    const { venue: requestedVenueId, bookingDate } = req.body; // takes venue Id only, not the whole object
 
     try {
       // Check if the user is authenticated
@@ -52,35 +111,33 @@ exports.bookVenue = async (req, res) => {
         throw new Error('User not found.');
       }
 
-      const venue = await Venue.findById(venueId);
+      const venue = await Venue.findById(requestedVenueId);
       if (!venue) {
-        throw new Error('Venue not foundddddd.');
+        throw new Error('Venue not found.');
       }
 
-      // Check if the venue is available for booking on the specified date
-      if (!venue.availableDates.includes(bookingDate)) {
+      const trimmedBookingDate = new Date(bookingDate).toISOString().split('T')[0];
+      const availableDateStrings = venue.availableDates.map(date => date.toISOString().split('T')[0]);
+
+      if (!availableDateStrings.includes(trimmedBookingDate)) {
         throw new Error('Venue not available on the specified date.');
       }
 
-      try {
-        // Create a new Booking document
-        const booking = new Booking({
-          user: user._id,
-          venue: venue._id,
-          bookingDate: bookingDate,
-        });
+      // Create a new Booking document
+      const booking = new Booking({
+        user: user._id,
+        venue: venue._id,
+        bookingDate: bookingDate,
+      });
 
-        // Save the booking
-        await booking.save();
+      // Save the booking
+      await booking.save();
 
-        // Update the venue's availability
-        venue.availableDates = venue.availableDates.filter(date => date !== bookingDate);
-        await venue.save();
+      // Update the venue's availability
+      venue.availableDates = venue.availableDates.filter(date => date.toISOString().split('T')[0] !== trimmedBookingDate);
+      await venue.save();
 
-        res.status(200).json({ message: 'Venue booked successfully.' });
-      } catch (bookingError) {
-        throw new Error('An error occurred while saving the booking.');
-      }
+      res.status(200).json({ message: 'Venue booked successfully.' });
     } catch (innerError) {
       return res.status(400).json({ message: innerError.message });
     }

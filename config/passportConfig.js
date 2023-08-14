@@ -4,11 +4,11 @@ const JwtStrategy = require('passport-jwt').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
 const config=require('./config')
 
-const User = require('../models/User'); // Modify the path to your User model
+const User = require('../models/User'); //  the path to  User model
 
 const options = {
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-  secretOrKey: config.JWT_SECRET // Set your JWT secret key here
+  secretOrKey: config.JWT_SECRET //  JWT secret key 
 };
 
 passport.use(
